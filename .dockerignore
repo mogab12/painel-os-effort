@@ -1,0 +1,10 @@
+# Fica fora da imagem: segredos e dados entram pelo env_file e pelo volume do docker-compose.
+.env
+dados/
+.venv/
+.vscode/
+.claude/
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/

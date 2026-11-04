@@ -1,0 +1,15 @@
+# Sobe o painel (porta 8501) e o agendador de coletas, compartilhando a pasta ./dados.
+#   docker compose up -d --build
+services:
+  painel:
+    build: .
+    env_file: .env
+    ports: ["8501:8501"]
+    volumes: ["./dados:/app/dados", "./regras.yaml:/app/regras.yaml:ro"]
+    restart: unless-stopped
+  agendador:
+    build: .
+    env_file: .env
+    command: ["python", "-m", "painel.agendador"]
+    volumes: ["./dados:/app/dados", "./regras.yaml:/app/regras.yaml:ro"]
+    restart: unless-stopped

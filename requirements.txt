@@ -1,0 +1,6 @@
+pandas>=2.0
+pyyaml>=6.0
+streamlit==1.66.1  # o CSS das abas depende do HTML desta versão
+altair>=5.0
+playwright==1.48.0  # mesma versão da imagem Docker
+apscheduler>=3.10,<4

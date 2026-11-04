@@ -1,0 +1,20 @@
+# O painel acompanha o tema do sistema; o usuário também pode trocar pelo menu (⋮ > Settings).
+[theme]
+base = "light"
+font = "'Source Sans 3':https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap"
+headingFont = "'Source Serif 4':https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600&display=swap"
+
+[theme.light]
+primaryColor = "#2F4B7C"
+backgroundColor = "#FAF7F1"
+secondaryBackgroundColor = "#F0EADE"
+textColor = "#241F1C"
+
+[theme.dark]
+primaryColor = "#5C7DB8"
+backgroundColor = "#1B1815"
+secondaryBackgroundColor = "#26211D"
+textColor = "#EDE6DA"
+
+[client]
+toolbarMode = "auto"
