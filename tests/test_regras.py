@@ -121,7 +121,6 @@ def test_ordena_do_mais_facil(regras):
 
 
 def com_prazo(numero, pendencia, prazo_em_dias, pend_ha_dias=5, **kw):
-    """OS cuja pendência em aberto foi aberta há `pend_ha_dias` e vence em `prazo_em_dias` (negativo = expirada)."""
     d = os_(numero, pendencia=pendencia, **kw)
     d["pendencia_abertura"] = f"{HOJE - dt.timedelta(days=pend_ha_dias):%d/%m/%Y} 10:00"
     d["pendencia_prazo"] = f"{HOJE + dt.timedelta(days=prazo_em_dias):%d/%m/%Y} 15:37"
@@ -146,11 +145,11 @@ def test_fila_ordena_pelo_prazo_dentro_da_facilidade(regras):
         com_prazo(1, "(MEH) AGUARDANDO SETOR COMPRAS", 10), com_prazo(2, "(MEH) AGUARDANDO SETOR COMPRAS", -20),
         os_(3, pendencia="(MEH) AGUARDANDO SETOR COMPRAS"), com_prazo(4, "(MEH) AGUARDANDO SETOR COMPRAS", -2),
     ]), regras, HOJE)
-    assert list(df["os"]) == ["2", "4", "1", "3"]   # mais atrasada primeiro; sem prazo por último
+    assert list(df["os"]) == ["2", "4", "1", "3"]
 
 
 def test_cobranca_conta_desde_a_abertura_da_pendencia(regras):
-    # OS aberta há 200 dias, mas a pendência de almoxarifado só existe há 3: ainda é "acompanhar"
+    # OS velha mas pendência nova
     l = classificar(pd.DataFrame([com_prazo(1, "(MEH) AGUARDANDO ALMOXARIFADO", 10, pend_ha_dias=3, dias=200)]),
                     regras, HOJE).iloc[0]
     assert l.acao_sugerida == "Acompanhar entrega do almoxarifado"

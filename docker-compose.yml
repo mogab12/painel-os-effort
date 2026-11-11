@@ -1,5 +1,3 @@
-# Sobe o painel (porta 8501) e o agendador de coletas, compartilhando a pasta ./dados.
-#   docker compose up -d --build
 services:
   painel:
     build: .

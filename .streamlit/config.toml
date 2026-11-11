@@ -1,4 +1,3 @@
-# O painel acompanha o tema do sistema; o usuário também pode trocar pelo menu (⋮ > Settings).
 [theme]
 base = "light"
 font = "'Source Sans 3':https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap"

@@ -1,11 +1,4 @@
-"""Executa uma coleta e grava no banco.
-
-Uso:
-    python -m painel.coletar              # coleta no Effort (usa as variáveis do .env)
-    python -m painel.coletar --visivel    # abre o navegador na tela, para depurar
-    python -m painel.coletar --demo       # gera dados fictícios, para testar o painel sem o Effort
-    python -m painel.coletar --demo-dias 15   # idem, com 15 dias de histórico (para ver a evolução do backlog)
-"""
+# python -m painel.coletar [--visivel | --demo | --demo-dias N]
 from __future__ import annotations
 
 import argparse
@@ -44,18 +37,17 @@ def executar(origem: str = "manual", demo: bool = False, visivel: bool = False) 
         banco.concluir_coleta(coleta_id, dados)
         log.info("Coleta %s concluída: %s OS.", coleta_id, len(dados))
         return 0
-    except Exception as e:  # noqa: BLE001 - qualquer falha vira registro no banco
+    except Exception as e:  # noqa: BLE001
         log.error("Coleta %s falhou: %s", coleta_id, e)
         banco.falhar_coleta(coleta_id, f"{e}\n\n{traceback.format_exc()}")
         return 1
-    except KeyboardInterrupt:  # Ctrl+C: libera a trava para a próxima coleta poder rodar
+    except KeyboardInterrupt:  # libera a trava
         log.warning("Coleta %s interrompida.", coleta_id)
         banco.falhar_coleta(coleta_id, "Coleta interrompida pelo usuário (Ctrl+C).")
         return 130
 
 
 def semear_historico(dias: int) -> None:
-    """Grava uma coleta fictícia por dia, dos últimos `dias` dias, com o backlog variando de leve."""
     import random
     banco = Banco(config.BANCO)
     manha = dt.datetime.now().replace(hour=7, minute=0, second=0, microsecond=0)

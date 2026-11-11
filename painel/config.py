@@ -1,4 +1,3 @@
-"""Configuração lida de variáveis de ambiente (ou de um arquivo .env na raiz do projeto)."""
 from __future__ import annotations
 
 import os
@@ -41,9 +40,9 @@ HEADLESS = env_bool("HEADLESS", True)
 BANCO = Path(env("BANCO", str(RAIZ / "dados" / "painel.db")))
 REGRAS = Path(env("REGRAS", str(RAIZ / "regras.yaml")))
 
-# Agendamento (formato cron, horário de Brasília). Padrão: dias úteis às 7h e às 13h.
+# cron, horário de Brasília
 AGENDA_CRON = env("AGENDA_CRON", "0 7,13 * * 1-5")
 FUSO = env("FUSO", "America/Sao_Paulo")
 
-# Senha simples para abrir o painel (opcional). Deixe vazio para não pedir.
+# vazio = sem senha
 SENHA_PAINEL = env("SENHA_PAINEL", "")

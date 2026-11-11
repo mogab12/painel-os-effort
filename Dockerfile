@@ -1,5 +1,4 @@
-# Imagem oficial do Playwright: já vem com o Chromium e as dependências do sistema.
-# Mantenha a versão da imagem igual à do pacote playwright do requirements.txt.
+# mesma versão do playwright do requirements
 FROM mcr.microsoft.com/playwright/python:v1.48.0-jammy
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 TZ=America/Sao_Paulo

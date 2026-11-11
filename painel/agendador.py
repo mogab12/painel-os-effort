@@ -1,9 +1,4 @@
-"""Processo que fica rodando e dispara a coleta nos horários de AGENDA_CRON.
-
-Uso:  python -m painel.agendador
-(Alternativa sem processo fixo: agendar `python -m painel.coletar --origem agendada`
-no cron do Linux ou no Agendador de Tarefas do Windows.)
-"""
+# python -m painel.agendador
 from __future__ import annotations
 
 import logging

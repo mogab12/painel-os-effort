@@ -1,4 +1,3 @@
-"""Dados fictícios no mesmo formato do coletor, para testar o painel sem acessar o Effort."""
 from __future__ import annotations
 
 import datetime as dt
@@ -31,7 +30,7 @@ def gerar(n: int = 300, semente: int | None = None) -> pd.DataFrame:
         eq = rnd.choice(EQUIPAMENTOS)
         dias = int(rnd.expovariate(1 / 60))
         situacao = "A" if (p == "" and rnd.random() < 0.8) else "P"
-        # pendência em aberto: começou em algum momento da vida da OS, com prazo de 5 a 60 dias
+        # prazo entre 5 e 60 dias
         pend_abertura = pend_prazo = ""
         if situacao == "P" and p:
             inicio = dt.datetime.combine(hoje, dt.time(rnd.randint(7, 17), rnd.choice([0, 15, 30, 45]))) \

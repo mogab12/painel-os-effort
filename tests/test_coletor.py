@@ -1,7 +1,7 @@
 from painel.coletor import (RE_CONTAGEM, ler_pendencia, montar_tabela, pendencias_abertas_da_os, separar_equipamento,
                             vence_primeiro)
 
-# Linha no formato exato lido da grade do Effort em 21/10/2026
+# linha real da grade
 LINHA = ["", "202602509", "INCU-0002", "INCUBADORA - 1186 (FANEM)\nUNIDADE NEONATAL", "CORRETIVA", "A", "16/10/2026", ""]
 
 
@@ -21,7 +21,6 @@ def test_montar_tabela():
     assert l.ultima_pendencia == "(MEH) FECHAR OS" and l.responsavel == "ARTHUR LOPES"
 
 
-# Trechos no formato das telas de consulta do Effort (nov/2026), com dados fictícios
 HTML_OS = """<table><tr class="GRA" onclick="GSR(this, event, &#39;8114&#39;)"><td><img src="img/ico_pendencia.png"></td>
 <td>15/10/2026 15:37</td><td>(MEH) AGUARDANDO EXECUÇÃO DO SERVIÇO TERCEIROS</td></tr>
 <tr class="GR" onclick="GSR(this, event, &#39;7651&#39;)"><td><img src="img/ico_pendenciaconcluida.png"></td>

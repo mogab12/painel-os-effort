@@ -1,4 +1,3 @@
-"""Histórico das coletas em SQLite: cada coleta guarda o retrato bruto das OS daquele momento."""
 from __future__ import annotations
 
 import datetime as dt
@@ -29,7 +28,7 @@ CREATE TABLE IF NOT EXISTS os (
 """
 COLUNAS_OS = ["os", "codigo", "equipamento", "modelo", "setor", "plano", "tipo",
               "situacao", "abertura", "ultima_pendencia", "responsavel", "pendencia_abertura", "pendencia_prazo"]
-TRAVA_MINUTOS = 45  # uma coleta "rodando" há mais que isso é considerada travada
+TRAVA_MINUTOS = 45  # depois disso considera travada
 
 
 def agora() -> str:
@@ -42,7 +41,7 @@ class Banco:
         self.caminho.parent.mkdir(parents=True, exist_ok=True)
         with self._con() as c:
             c.executescript(ESQUEMA)
-            # bancos criados antes dos prazos de pendência: acrescenta as colunas que faltam
+            # banco antigo, sem as colunas novas
             existentes = {r[1] for r in c.execute("PRAGMA table_info(os)")}
             for col in ("pendencia_abertura", "pendencia_prazo"):
                 if col not in existentes:
@@ -57,7 +56,6 @@ class Banco:
         finally:
             con.close()
 
-    # ------------------------------------------------------------ coletas
     def coleta_em_andamento(self) -> dict | None:
         limite = (dt.datetime.now() - dt.timedelta(minutes=TRAVA_MINUTOS)).isoformat(timespec="seconds")
         with self._con() as c:
@@ -68,7 +66,7 @@ class Banco:
         return {"id": r[0], "inicio": r[1], "origem": r[2]} if r else None
 
     def iniciar_coleta(self, origem: str) -> int | None:
-        """Registra o início; devolve None se já houver outra coleta rodando."""
+        # None se já tiver outra rodando
         if self.coleta_em_andamento():
             return None
         with self._con() as c:
@@ -83,7 +81,7 @@ class Banco:
             c.execute("UPDATE coletas SET status='ok', fim=?, total=? WHERE id=?", (agora(), len(dados), coleta_id))
 
     def datar_coleta(self, coleta_id: int, quando: dt.datetime):
-        """Muda a data de uma coleta. Só serve para montar histórico fictício de demonstração."""
+        # só pro demo
         iso = quando.isoformat(timespec="seconds")
         with self._con() as c:
             c.execute("UPDATE coletas SET inicio=?, fim=? WHERE id=?", (iso, iso, coleta_id))
@@ -92,7 +90,6 @@ class Banco:
         with self._con() as c:
             c.execute("UPDATE coletas SET status='erro', fim=?, erro=? WHERE id=?", (agora(), erro[:2000], coleta_id))
 
-    # ------------------------------------------------------------ leitura
     def ultima_coleta(self, status: str | None = "ok") -> dict | None:
         sql = "SELECT id, inicio, fim, status, origem, total, erro FROM coletas"
         sql += " WHERE status=?" if status else ""
@@ -108,7 +105,7 @@ class Banco:
             return pd.read_sql_query("SELECT * FROM os WHERE coleta_id=?", c, params=(coleta_id,)).drop(columns="coleta_id")
 
     def historico(self, dias: int = 120) -> pd.DataFrame:
-        """Uma linha por coleta bem-sucedida (a última de cada dia) com contagens brutas."""
+        # última coleta ok de cada dia
         desde = (dt.datetime.now() - dt.timedelta(days=dias)).isoformat()
         with self._con() as c:
             df = pd.read_sql_query(

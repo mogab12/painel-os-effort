@@ -1,15 +1,3 @@
-"""Classificação das OS a partir das regras em regras.yaml.
-
-Entrada: DataFrame "bruto" vindo do coletor, com as colunas
-    os, codigo, equipamento, setor, tipo, situacao, abertura, ultima_pendencia, responsavel
-(situacao é "A" para aberta ou "P" para pendente; abertura é uma data) e, opcionalmente,
-    pendencia_abertura, pendencia_prazo   ("dd/mm/aaaa hh:mm" da pendência em aberto que vence primeiro)
-
-Saída: o mesmo DataFrame com as colunas calculadas
-    dias_aberta, dias_pendencia, dias_para_vencer, expirada, prazo_txt, faixa_idade, depende_de,
-    ordem_facilidade, facilidade, acao_sugerida, duplicada, qtd_os_equipamento, prioritaria,
-    regra_desconhecida
-"""
 from __future__ import annotations
 
 import datetime as dt
@@ -28,12 +16,11 @@ COLUNAS_BRUTAS = [
 
 
 def normalizar(texto: str | None) -> str:
-    """Maiúsculas, sem acentos, sem prefixo entre parênteses e com espaços simples."""
     if not texto:
         return ""
     t = unicodedata.normalize("NFD", str(texto))
     t = "".join(c for c in t if unicodedata.category(c) != "Mn").upper()
-    t = re.sub(r"^\s*\([^)]*\)\s*", "", t)  # "(MEH) AGUARDANDO..." -> "AGUARDANDO..."
+    t = re.sub(r"^\s*\([^)]*\)\s*", "", t)  # tira o (MEH)
     return re.sub(r"\s+", " ", t).strip()
 
 
@@ -57,7 +44,6 @@ class Regras:
         return self.bruto[lista][-1]["nome"]
 
     def regra_pendencia(self, pendencia: str) -> tuple[dict, bool]:
-        """Devolve (regra, reconhecida)."""
         p = normalizar(pendencia)
         for regra in self.bruto["pendencias"]:
             if normalizar(regra["contem"]) in p:
@@ -66,7 +52,6 @@ class Regras:
 
 
 def texto_prazo(dias: float) -> str:
-    """Dias até o prazo de conclusão (negativo = já passou) em texto para a tabela."""
     if pd.isna(dias):
         return "Sem prazo"
     d = int(dias)
@@ -78,7 +63,7 @@ def texto_prazo(dias: float) -> str:
 
 
 def _classificar_linha(linha: pd.Series, regras: Regras) -> dict:
-    # idade da pendência atual (desde que ela foi aberta); sem essa data, usa a idade da OS
+    # sem data da pendência usa a da OS
     dias = int(linha["dias_pendencia"])
     pend = (linha.get("ultima_pendencia") or "").strip()
     reconhecida = True
@@ -127,7 +112,7 @@ def classificar(bruto: pd.DataFrame, regras: Regras, hoje: dt.date | None = None
     hoje_ts = pd.Timestamp(hoje)
     pend_abertura, prazo = _datas("pendencia_abertura"), _datas("pendencia_prazo")
     df["dias_pendencia"] = (hoje_ts - pend_abertura).dt.days.fillna(df["dias_aberta"]).astype(int)
-    df["dias_para_vencer"] = (prazo - hoje_ts).dt.days          # NaN quando não há prazo
+    df["dias_para_vencer"] = (prazo - hoje_ts).dt.days
     df["expirada"] = df["dias_para_vencer"] < 0
     df["prazo_txt"] = df["dias_para_vencer"].map(texto_prazo)
     df["faixa_idade"] = [regras.faixa("faixas_idade", "ate_dias", d) for d in df["dias_aberta"]]
@@ -136,7 +121,7 @@ def classificar(bruto: pd.DataFrame, regras: Regras, hoje: dt.date | None = None
     df = pd.concat([df, calc], axis=1)
 
     genericos = set(regras.bruto.get("codigos_genericos", []))
-    # duplicidade = mais de uma OS aberta no mesmo equipamento e do mesmo tipo (corretiva + preventiva não conta)
+    # mesmo equipamento e mesmo tipo
     qtd = df.groupby(["codigo", "tipo"])["os"].transform("count")
     df["qtd_os_equipamento"] = qtd
     df["duplicada"] = (qtd > 1) & ~df["codigo"].isin(genericos)
@@ -154,7 +139,7 @@ def classificar(bruto: pd.DataFrame, regras: Regras, hoje: dt.date | None = None
         | df["duplicada"]
         | df["expirada"]
     )
-    # dentro de cada facilidade: das mais atrasadas para as mais folgadas; sem prazo por último
+    # mais atrasadas primeiro
     return df.sort_values(["ordem_facilidade", "dias_para_vencer", "dias_aberta"], ascending=[True, True, False],
                           na_position="last").reset_index(drop=True)
 

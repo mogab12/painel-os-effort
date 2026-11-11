@@ -1,14 +1,11 @@
-"""Visual do painel: paleta, CSS e a faixa de resumo."""
 from __future__ import annotations
 
 import html
 
-# Uma paleta só, com tons médios que leem bem no fundo claro e no escuro. O Streamlit não roda o
-# script de novo quando o tema muda pelo menu, então nada aqui pode depender do tema detectado:
-# o texto herda a cor do tema ativo e as cores fixas ficam só nos dados.
+# cores que funcionam no tema claro e escuro
 PALETA = {
     "texto_graf": "#8C8479", "grade": "#8C8479", "destaque": "#5A78B0", "foco": "#D29522",
-    "destaque_aba": "#4A67A0",  # fundo da aba selecionada: contraste 5,6:1 com o texto branco
+    "destaque_aba": "#4A67A0",
     "quem": ["#5A78B0", "#C99A3B", "#A0628A", "#8F887C"],
     "fac": ["#6E9443", "#5A78B0", "#B5AD9F"],
     "idade": ["#A3B4D6", "#7590C2", "#45619A", "#C8573B"],
@@ -91,7 +88,6 @@ h3 { font-size: 1.15rem; }
 
 
 def faixa(contagens: dict[str, int], cores: dict[str, str], resumo_html: str) -> str:
-    """Faixa proporcional: cada trecho é a parcela de OS que depende de um ator."""
     total = sum(contagens.values()) or 1
     segs = "".join(
         f'<span style="flex:{n};background:{cores[k]}" title="{html.escape(k)}: {n}"></span>'
@@ -104,6 +100,6 @@ def faixa(contagens: dict[str, int], cores: dict[str, str], resumo_html: str) ->
 
 
 def legenda_grafico(itens: list[str], cores: list[str]) -> str:
-    """Legenda em HTML: quebra de linha sozinha, sem depender de medir o texto dentro do gráfico."""
+    # em html pra quebrar linha sozinha
     return '<div class="leg-graf">' + "".join(
         f'<span><i aria-hidden="true" style="background:{c}"></i>{html.escape(n)}</span>' for n, c in zip(itens, cores)) + "</div>"

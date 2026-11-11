@@ -1,14 +1,9 @@
-# Regras de classificação das OS abertas.
-#
-# ordem: 1 = mais fácil de resolver ... 8 = depende de terceiros, só acompanhar
-#   1-3  -> "Rápida"
-#   4-6  -> "Trabalho da MEH"
-#   7-8  -> "Depende de outros"
+# ordem: 1 = mais fácil, 8 = só acompanhar
 
 limiares:
-  escalar_apos_dias: 90        # OS que dependem de outros e estão paradas há mais que isso: "cobrar e escalar"
-  analise_atrasada_dias: 30    # análise interna parada há mais que isso entra nas prioritárias
-  antiga_dias: 180             # indicador "abertas há mais de N dias"
+  escalar_apos_dias: 90
+  analise_atrasada_dias: 30
+  antiga_dias: 180
 
 faixas_facilidade:
   - {ate_ordem: 3, nome: "Rápida"}
@@ -21,22 +16,21 @@ faixas_idade:
   - {ate_dias: 180, nome: "91–180 dias"}
   - {ate_dias: 999999, nome: "Mais de 180 dias"}
 
-# Códigos genéricos que não indicam o mesmo equipamento físico (não contam como duplicidade)
+# não contam como duplicada
 codigos_genericos: [TERM-0001, OUTROS-0001, MEH, ROUPA]
 
-# OS sem nenhuma pendência registrada
 sem_pendencia:
-  aberta:      # situação "A": acabou de chegar
+  aberta:
     depende_de: "MEH"
     ordem: 5
     acao: "Triar e iniciar atendimento"
     acao_pedido_compra: "Dar andamento ao pedido de compra"
-  pendente:    # situação "P" mas sem motivo: falha de registro
+  pendente:    # sem motivo registrado
     depende_de: "MEH"
     ordem: 2
     acao: "Registrar o motivo da pendência"
 
-# Pendências: a primeira regra cujo texto "contem" aparece na pendência é usada.
+# vale a primeira que bater
 pendencias:
   - contem: "FECHAR OS"
     depende_de: "MEH"
@@ -60,19 +54,18 @@ pendencias:
     acao: "Analisar o equipamento"
     se_mais_de_dias: {dias: 30, ordem: 6, acao: "Analisar o equipamento (parado há mais de 30 dias)"}
 
-  # Fornecedor / terceiros
+  # terceiros
   - {contem: "AGUARDANDO EXECUCAO DO SERVICO TERCEIROS", depende_de: "Fornecedor / terceiros", ordem: 8, acao: "Acompanhar"}
   - {contem: "AGUARDANDO O.S. TERCEIROS",               depende_de: "Fornecedor / terceiros", ordem: 8, acao: "Acompanhar"}
   - {contem: "AGUARDANDO RETORNO DO EQUIPAMENTO",       depende_de: "Fornecedor / terceiros", ordem: 8, acao: "Acompanhar"}
 
-  # Documentação pedida às empresas para elaborar a demanda ou outras necessidades administrativas
   - contem: "AGUARDANDO ENVIO DE DOCUMENTACAO"
     depende_de: "Fornecedor / terceiros"
     ordem: 8
     acao: "Acompanhar envio da documentação pelo fornecedor"
     se_mais_de_dias: {dias: 30, ordem: 3, acao: "Cobrar documentação do fornecedor"}
 
-  # Suprimentos / financeiro (compras, almoxarifado e financeiro)
+  # compras / financeiro
   - {contem: "AGUARDANDO APROVACAO DE ORCAMENTO", depende_de: "Suprimentos / financeiro", ordem: 8, acao: "Acompanhar"}
   - {contem: "AGUARDANDO ORCAMENTO",              depende_de: "Suprimentos / financeiro", ordem: 8, acao: "Acompanhar"}
   - {contem: "AGUARDANDO SETOR COMPRAS",          depende_de: "Suprimentos / financeiro", ordem: 8, acao: "Acompanhar"}
@@ -83,14 +76,13 @@ pendencias:
   - {contem: "AGUARDANDO PECA",                   depende_de: "Suprimentos / financeiro", ordem: 8, acao: "Acompanhar"}
   - {contem: "AGUARDANDO DEMANDA",                depende_de: "Suprimentos / financeiro", ordem: 8, acao: "Acompanhar"}
 
-  # Entrega do almoxarifado, seja compra eventual ou item de RP
   - contem: "AGUARDANDO ALMOXARIFADO"
     depende_de: "Suprimentos / financeiro"
     ordem: 8
     acao: "Acompanhar entrega do almoxarifado"
     se_mais_de_dias: {dias: 15, ordem: 3, acao: "Cobrar entrega do almoxarifado"}
 
-# Pendência que nenhuma regra acima reconhece: aparece num aviso no painel para alguém criar a regra.
+# aparece um aviso no painel
 pendencia_desconhecida:
   depende_de: "Não classificado"
   ordem: 8

@@ -1,7 +1,4 @@
-"""Painel das OS abertas do Effort, da Manutenção de Equipamentos Hospitalares (MEH).
-
-Rodar:  streamlit run app.py
-"""
+# streamlit run app.py
 from __future__ import annotations
 
 import datetime as dt
@@ -43,7 +40,7 @@ def nome_bonito(n: str) -> str:
 
 
 def nomes_curtos(nomes) -> dict:
-    """Primeiro nome de cada técnico; se dois tiverem o mesmo, usa primeiro e último."""
+    # primeiro nome, ou primeiro + último se repetir
     primeiro = {n: n.split()[0] if n.split() else n for n in nomes}
     repetidos = {p for p in primeiro.values() if list(primeiro.values()).count(p) > 1}
     return {n: (f"{p} {n.split()[-1]}" if p in repetidos and len(n.split()) > 1 else p) for n, p in primeiro.items()}
@@ -55,7 +52,6 @@ def pendencia_bonita(p: str) -> str:
     return p.capitalize() if p else "(sem pendência)"
 
 
-# --------------------------------------------------------------------------- acesso
 if config.SENHA_PAINEL:
     if not st.session_state.get("ok"):
         st.title("Fila de OS da MEH")
@@ -85,7 +81,6 @@ def disparar_coleta():
                      start_new_session=True)
 
 
-# --------------------------------------------------------------------------- cabeçalho
 ultima = banco.ultima_coleta("ok")
 recente = banco.ultima_coleta(None)
 andamento = banco.coleta_em_andamento()
@@ -130,7 +125,6 @@ if desconhecidas:
     st.warning("Pendências sem regra em `regras.yaml`: " + "; ".join(desconhecidas) + ".")
 
 
-# --------------------------------------------------------------------------- utilidades
 FONTE = "'Source Sans 3', 'Segoe UI', sans-serif"
 
 
@@ -192,7 +186,6 @@ def filtrar(dados: pd.DataFrame, escolha: str) -> pd.DataFrame:
     }.get(escolha, dados)
 
 
-# --------------------------------------------------------------------------- abas
 por_resp = df.groupby("responsavel").size().sort_values(ascending=False)
 abas = st.tabs(["Visão geral"] + [f"{curto[n]} ({q})" for n, q in por_resp.items()])
 

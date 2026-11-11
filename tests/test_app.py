@@ -1,4 +1,3 @@
-"""Sobe o app com dados de demonstração e confere que as abas e métricas aparecem sem erro."""
 import os
 import subprocess
 import sys
