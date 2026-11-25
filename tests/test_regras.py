@@ -53,10 +53,15 @@ def test_pedido_de_compra_aberto(regras):
     assert l.acao_sugerida == "Dar andamento ao pedido de compra"
 
 
-def test_certificado_vira_rapido_depois_de_90_dias(regras):
-    assert linha(regras, pendencia="(MEH) AGUARDANDO CERTIFICADO", dias=30).facilidade == "Depende de outros"
-    velho = linha(regras, pendencia="(MEH) AGUARDANDO CERTIFICADO", dias=120)
-    assert velho.facilidade == "Rápida" and velho.acao_sugerida.startswith("Cobrar certificado")
+def classifica_um(regras, d):
+    return classificar(pd.DataFrame([d]), regras, HOJE).iloc[0]
+
+
+def test_certificado_vira_rapido_quando_o_prazo_expira(regras):
+    no_prazo = classifica_um(regras, com_prazo(1, "(MEH) AGUARDANDO CERTIFICADO", 0))
+    assert no_prazo.facilidade == "Depende de outros" and no_prazo.acao_sugerida == "Aguardar certificado"
+    expirada = classifica_um(regras, com_prazo(1, "(MEH) AGUARDANDO CERTIFICADO", -1))
+    assert expirada.facilidade == "Rápida" and expirada.acao_sugerida.startswith("Cobrar certificado")
 
 
 def test_orcamento_nao_confunde_com_aprovacao(regras):
@@ -65,9 +70,13 @@ def test_orcamento_nao_confunde_com_aprovacao(regras):
     assert "APROVACAO" in r1["contem"] and r2["contem"] == "AGUARDANDO ORCAMENTO"
 
 
-def test_terceiros_parado_ha_muito_tempo_escala(regras):
-    l = linha(regras, pendencia="(MEH) AGUARDANDO EXECUÇÃO DO SERVIÇO TERCEIROS", dias=200)
+def test_terceiros_escala_depois_de_30_dias_expirada(regras):
+    pend = "(MEH) AGUARDANDO EXECUÇÃO DO SERVIÇO TERCEIROS"
+    assert classifica_um(regras, com_prazo(1, pend, -30)).acao_sugerida == "Acompanhar"
+    l = classifica_um(regras, com_prazo(1, pend, -31))
     assert l.depende_de == "Fornecedor / terceiros" and l.acao_sugerida.startswith("Cobrar retorno e escalar")
+    # OS muito antiga, mas sem prazo expirado: não escala
+    assert classifica_um(regras, com_prazo(1, pend, 10, pend_ha_dias=300, dias=400)).acao_sugerida == "Acompanhar"
 
 
 def test_zmanutencao_reconhecida(regras):
@@ -148,11 +157,12 @@ def test_fila_ordena_pelo_prazo_dentro_da_facilidade(regras):
     assert list(df["os"]) == ["2", "4", "1", "3"]
 
 
-def test_cobranca_conta_desde_a_abertura_da_pendencia(regras):
-    # OS velha mas pendência nova
-    l = classificar(pd.DataFrame([com_prazo(1, "(MEH) AGUARDANDO ALMOXARIFADO", 10, pend_ha_dias=3, dias=200)]),
-                    regras, HOJE).iloc[0]
-    assert l.acao_sugerida == "Acompanhar entrega do almoxarifado"
-    l = classificar(pd.DataFrame([com_prazo(1, "(MEH) AGUARDANDO ALMOXARIFADO", 10, pend_ha_dias=16, dias=200)]),
-                    regras, HOJE).iloc[0]
-    assert l.acao_sugerida == "Cobrar entrega do almoxarifado"
+def test_acao_muda_pelo_prazo_e_nao_pela_idade(regras):
+    pend = "(MEH) AGUARDANDO ALMOXARIFADO"
+    # pendência antiga, ainda no prazo: acompanhar
+    assert classifica_um(regras, com_prazo(1, pend, 10, pend_ha_dias=60, dias=200)).acao_sugerida == \
+        "Acompanhar entrega do almoxarifado"
+    # pendência nova, mas já expirada: cobrar
+    assert classifica_um(regras, com_prazo(1, pend, -1, pend_ha_dias=3)).acao_sugerida == "Cobrar entrega do almoxarifado"
+    # sem prazo registrado: a ação não muda
+    assert classifica_um(regras, os_(1, pendencia=pend, dias=300)).acao_sugerida == "Acompanhar entrega do almoxarifado"

@@ -11,14 +11,14 @@ def test_separar_equipamento_com_plano():
 
 
 def test_tira_contagem_do_filtro():
-    assert RE_CONTAGEM.sub("", "PAULO MALUSÁ ZANUZZIO (3)") == "PAULO MALUSÁ ZANUZZIO"
+    assert RE_CONTAGEM.sub("", "TÉCNICO EXEMPLO DA SILVA (3)") == "TÉCNICO EXEMPLO DA SILVA"
 
 
 def test_montar_tabela():
-    df = montar_tabela([LINHA], {"202602509": "(MEH) FECHAR OS"}, {"202602509": "ARTHUR LOPES"})
+    df = montar_tabela([LINHA], {"202602509": "(MEH) FECHAR OS"}, {"202602509": "TECNICO B"})
     l = df.iloc[0]
     assert (l.os, l.codigo, l.equipamento, l.setor, l.situacao) == ("202602509", "INCU-0002", "INCUBADORA", "UNIDADE NEONATAL", "A")
-    assert l.ultima_pendencia == "(MEH) FECHAR OS" and l.responsavel == "ARTHUR LOPES"
+    assert l.ultima_pendencia == "(MEH) FECHAR OS" and l.responsavel == "TECNICO B"
 
 
 HTML_OS = """<table><tr class="GRA" onclick="GSR(this, event, &#39;8114&#39;)"><td><img src="img/ico_pendencia.png"></td>

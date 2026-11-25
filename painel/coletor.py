@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 import html as html_lib
+import json
 import logging
 import re
 import time
@@ -163,6 +164,24 @@ class Coletor:
         raise ErroColeta(f"Não foi possível entrar no Effort (parou em {page.url}). "
                          "Verifique usuário, senha e os seletores de login.")
 
+    def guardar_sessao(self):
+        """Lê, no Desktop logo após entrar, os ids que o logout do Effort pede."""
+        self._sessao = self.page.evaluate(
+            "() => ({UserId: typeof idUsuario !== 'undefined' ? idUsuario : null,"
+            " LogId: typeof logAcessoId !== 'undefined' ? logAcessoId : null})")
+
+    def sair(self):
+        """Logout (PUT /api/Entry/Logout, o mesmo do Effort ao fechar). Nunca derruba a coleta."""
+        sessao = getattr(self, "_sessao", None)
+        if not self.page or not sessao or sessao.get("UserId") is None:
+            return
+        try:
+            r = self.page.context.request.put(f"{self.cfg.url_base}/api/Entry/Logout", data=json.dumps(sessao),
+                                              headers={"Content-Type": "application/json; charset=utf-8"})
+            log.info("Logout do Effort: HTTP %s.", r.status)
+        except Exception as e:  # noqa: BLE001
+            log.warning("Logout do Effort falhou: %s", e)
+
     def _liberar(self, botao):
         if not self.cfg.liberar_acesso:
             raise ErroColeta("Já existe uma sessão aberta com este usuário e liberar_acesso está desligado.")
@@ -170,15 +189,20 @@ class Coletor:
         botao.first.click()
         self.page.wait_for_load_state("domcontentloaded")
 
-    def pesquisar(self) -> dict:
+    def pesquisar(self, situacoes: tuple[str, ...] = ("aberta", "pendente")) -> dict:
         page = self.page
         page.goto(f"{self.cfg.url_base}/frmos_pesquisa.aspx", wait_until="domcontentloaded")
         page.wait_for_selector("#chkaberta", timeout=self.cfg.timeout_s * 1000)
-        for sel, marcar in (("#chkaberta", True), ("#chkpendente", True), ("#chkfechada", False), ("#chkcancelada", False)):
+        for sel, marcar in ((f"#chk{s}", s in situacoes) for s in ("aberta", "pendente", "fechada", "cancelada")):
             if page.is_checked(sel) != marcar:
                 page.click(sel)
+        # o quadro de resultado pode já existir (vazio): marca o atual e espera o novo
+        antes = page.evaluate(JS_ESTADO)
+        if antes:
+            page.evaluate(JS_MARCAR)
+            antes["marca"] = True
         page.click("#btnprocurar")
-        est = self._esperar_resultado()
+        est = self._esperar_resultado(mudou_de=antes)
         log.info("Pesquisa: %s OS em %s página(s).", est["total"], est["paginas"])
         return est
 
@@ -253,12 +277,14 @@ class Coletor:
                 self.page = navegador.new_page(viewport={"width": 1600, "height": 900}, locale="pt-BR")
                 self.page.set_default_timeout(self.cfg.timeout_s * 1000)
                 self.entrar()
+                self.guardar_sessao()
                 self.pesquisar()
                 linhas = self.ler_todas_paginas()
                 pendencias = self.mapear_por_filtro("Pendencia")
                 responsaveis = self.mapear_por_filtro("Responsavel")
                 prazos = self.ler_prazos(linhas)
             finally:
+                self.sair()
                 navegador.close()
         return montar_tabela(linhas, pendencias, responsaveis, prazos)
 
@@ -272,7 +298,6 @@ def separar_equipamento(texto: str) -> tuple[str, str, str]:
     return equip, setor, plano
 
 
-# pendência aberta = ico_pendencia.png
 RE_ATIVIDADE = re.compile(r"<tr\b[^>]*GSR\(this, event, (?:&#39;|')(\d+)(?:&#39;|')\)[^>]*>(.*?)</tr>", re.S | re.I)
 CAMPOS_PENDENCIA = {"cbopendencia": "pendencia", "txtdatapendenciaabertura": "abertura_data",
                     "txthorapendenciaabertura": "abertura_hora", "txtdataprazo": "prazo_data", "txthoraprazo": "prazo_hora"}

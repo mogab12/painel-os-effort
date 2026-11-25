@@ -44,5 +44,12 @@ REGRAS = Path(env("REGRAS", str(RAIZ / "regras.yaml")))
 AGENDA_CRON = env("AGENDA_CRON", "0 7,13 * * 1-5")
 FUSO = env("FUSO", "America/Sao_Paulo")
 
+# registro mensal dos cadastros (painel/snapshot.py): dia 1, às 2h
+SNAPSHOT_CRON = env("SNAPSHOT_CRON", "0 2 1 * *")
+SNAPSHOTS = Path(env("SNAPSHOTS", str(BANCO.parent / "snapshots")))
+SNAPSHOT_ANEXOS = env_bool("SNAPSHOT_ANEXOS", False)  # baixar PDFs anexos: ainda não implementado
+SNAPSHOT_OS_MAX_MIN = int(env("SNAPSHOT_OS_MAX_MIN", "180"))  # tempo máximo lendo detalhe de OS por rodada
+SNAPSHOT_MANTER = int(env("SNAPSHOT_MANTER", "2"))  # registros guardados; no seguinte, o mais antigo é apagado
+
 # vazio = sem senha
 SENHA_PAINEL = env("SENHA_PAINEL", "")

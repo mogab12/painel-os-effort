@@ -64,6 +64,7 @@ h3 { font-size: 1.15rem; }
 [data-testid="stTabs"] [role="tab"][aria-selected="true"] { background: %(destaque_aba)s; border-color: %(destaque_aba)s; color: #fff; }
 [data-testid="stTabs"] [role="tab"][aria-selected="true"] p { font-weight: 700; color: #fff; }
 [data-testid="stTabs"] [role="tab"]:first-child { margin-right: .75rem; }
+[data-testid="stTabs"] [role="tab"]:last-child { margin-left: .75rem; }
 
 /* botões */
 .stButton > button, .stDownloadButton > button { border-radius: 3px; font-weight: 600; }

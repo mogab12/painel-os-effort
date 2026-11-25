@@ -73,6 +73,44 @@ Sem Docker, num servidor Linux: instale como acima e crie dois serviços do syst
 - Não use o Streamlit Community Cloud com repositório público.
 - Nunca suba o `.env` nem a pasta `dados/` para o Git (já estão no `.gitignore`).
 
+## Histórico mensal do Effort
+
+Uma vez por mês (dia 1º, às 2h; `SNAPSHOT_CRON` no `.env`) o sistema guarda um registro (log) dos cadastros da oficina no banco do painel, para termos um registro próprio caso o Effort fique fora do ar ou algum dado se perca. Para rodar na hora: `python -m painel.snapshot --agora`. O resultado aparece na aba **Histórico** do painel.
+
+| Cadastro | De onde vem | Chave |
+|---|---|---|
+| Equipamentos (ativos e inativos) | exportação Excel de `Equipamento.aspx`; criticidade, prioridade, plano, contrato e situação vêm de uma exportação por valor de filtro | TAG |
+| Contratos | exportação de `ContratoManutencao.aspx` | número |
+| Fornecedores, fabricantes e modelos | exportações de `frmfornecedor.aspx`, `frmfabricante.aspx` e `Modelo.aspx` | código |
+| Setores e planos de manutenção | árvores de `Setor.aspx` e `PlanoManutencao.aspx` (sigla, grupo, periodicidade, procedimento, tipo, ativo, nº de equipamentos) | id do Effort |
+| Procedimentos de manutenção | árvore de `frmprocedimentoraiz.aspx` (nome, versão, data de publicação) | id do Effort |
+| Motivos de pendência | a mesma API que a tela `Pendencia.aspx` usa (descrição, prazo, ativo) | id do Effort |
+| Planos x equipamentos | relatório "Planos de Manutenção por Equipamento" em XLS (plano, periodicidade, última realização, próxima abertura, responsável) | TAG + plano |
+| Contratos x equipamentos | relatório "Contratos com Fornecedores", analítico, em XLS (contrato, equipamento coberto e valor) | nº do contrato + TAG |
+| OS fechadas | pesquisa de OS só com "Fechada" | nº da OS |
+| Detalhe e atividades de cada OS fechada | tela de consulta da OS: responsável, datas, custos, pendências, ocorrências e causas, serviços, e as peças e serviços externos com quantidade, valor e total | nº da OS |
+
+**Quanto fica guardado.** Só os dois últimos registros (`SNAPSHOT_MANTER`, padrão 2). Ao terminar o terceiro, o mais antigo é apagado: a pasta do mês em `dados/snapshots/`, as mudanças daquele registro e os itens que tinham saído do Effort naquele mês. O detalhe das OS fica, porque é o conteúdo das pastas por equipamento e relê-lo custaria 1h40 por mês.
+
+**Como é gravado.** Só a diferença: o que entrou é inserido, os campos que mudaram são atualizados, e o que sumiu do Effort é marcado com o mês em que sumiu (não é apagado). O que não mudou não é tocado. Cada entrada, saída e mudança (campo, antes e depois) fica em `hist_mudancas`. O detalhe de cada OS fechada é lido uma única vez; a primeira carga (cerca de 5.800 OS, 1 segundo cada) leva perto de 1h40 e, se passar de `SNAPSHOT_OS_MAX_MIN` (180 min), continua no registro seguinte, das OS mais recentes para as mais antigas.
+
+**Só leitura.** O coletor apenas pesquisa, exporta e abre telas em modo consulta. Não baixa anexos. Faz logout no fim e nunca roda ao mesmo tempo que a coleta de OS (as duas usam a mesma trava, porque o Effort aceita uma sessão por usuário). As observações em texto livre das OS não são guardadas.
+
+**Relatórios** (aba Histórico e arquivos do mês; limites em `alertas.yaml`):
+- contratos: vencidos, a vencer em 30/60/90 dias, valor zerado, número repetido, contrato vigente sem equipamentos vinculados, equipamento em comodato ou locado sem contrato;
+- qualidade do cadastro: equipamento ativo sem TAG, sem criticidade ou sem prioridade; criticidade alta ou média sem plano; plano ativo sem periodicidade; setor sem sigla ou com ponto final; fornecedor com contrato sem CNPJ ou telefone.
+
+**Pastas por equipamento** (`dados/snapshots/AAAA-MM/historico_equipamentos_AAAA-MM.zip`, também no botão "Baixar pastas" da aba Histórico). É o jeito mais fácil de consultar sem o app: uma pasta por equipamento, com nome no formato TAG - descrição - modelo - PAT patrimônio. Dentro dela há uma pasta por OS, aberta ou fechada, e dentro de cada OS a subpasta `pendencias`, com uma página por pendência. Tudo é página HTML, que abre no navegador e é ligada por links. Comece pelo `indice.html`, que tem busca. A página da OS mostra quem abriu, o técnico, as datas, o defeito e a causa, o serviço feito, as pendências com os dias de cada uma, a mão de obra, os materiais com preço, os serviços externos e os custos. O zip é refeito no fim de cada registro (cerca de 30 MB). O detalhe das OS abertas é relido a cada registro, porque elas mudam; quando a OS fecha, o detalhe é lido de novo e fica gravado.
+
+**Arquivos para abrir sem o app** (`dados/snapshots/`):
+- `AAAA-MM/mudancas.xlsx`: o que mudou naquele mês, com um resumo e uma aba por cadastro;
+- `AAAA-MM/relatorio_contratos.xlsx` e `relatorio_qualidade.xlsx`: os relatórios daquele mês;
+- `atual/*.xlsx`: o estado atual de cada cadastro (inclusive o que já saiu, na coluna `ate`), o detalhe e as atividades das OS. São refeitos a cada registro.
+
+**O que ele NÃO é.** Não é um backup que volta para o Effort: é uma cópia para consulta. Se o Effort perder dados, a restauração tem de ser feita pela Globalthings; este registro serve para conferir o que existia e para migrar para outro sistema, se for preciso.
+
+**Espaço.** O banco ocupa cerca de 8 MB e cresce uns 0,5 MB por mês (umas 300 OS fechadas novas). Cada mês guardado ocupa cerca de 40 MB em `dados/snapshots/AAAA-MM/`, quase tudo o zip das pastas; como só ficam dois meses, o total fica perto de 90 MB. As planilhas de `atual/` somam cerca de 3 MB e são sobrescritas.
+
 ## Manutenção
 
 | Situação | O que fazer |

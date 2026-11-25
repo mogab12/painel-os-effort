@@ -4,3 +4,5 @@ streamlit==1.66.1  # css das abas depende dessa versão
 altair>=5.0
 playwright==1.48.0  # igual à imagem docker
 apscheduler>=3.10,<4
+openpyxl>=3.1  # planilhas da fotografia mensal
+xlrd>=2.0  # algumas exportações do Effort são .xls antigos

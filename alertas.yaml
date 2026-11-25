@@ -1,0 +1,8 @@
+# Limites dos relatórios da aba Histórico (painel/alertas.py). Edite aqui; não precisa mexer no código.
+
+contratos:
+  a_vencer_dias: [30, 60, 90]          # faixas de "vence em até N dias"
+  situacoes_sem_contrato: [COMODATO, LOCADO]   # equipamento nessa situação deveria ter contrato
+
+qualidade:
+  criticidades_exigem_plano: [ALTA, MEDIA]     # equipamento ativo com essa criticidade deveria ter plano

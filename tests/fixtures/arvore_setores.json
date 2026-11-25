@@ -1,0 +1,44 @@
+[
+{
+"id": "root_tree1",
+"texto": "",
+"icone": "ico_transparente.png",
+"grupo": ""
+},
+{
+"id": "raiz",
+"texto": "MANUTENÇÃO DE EQUIPAMENTOS",
+"icone": "ico_empresa.png",
+"grupo": ""
+},
+{
+"id": "116",
+"texto": "ALMOX - ALMOXARIFADO",
+"icone": "ico_setor.png",
+"grupo": "MANUTENÇÃO DE EQUIPAMENTOS"
+},
+{
+"id": "2",
+"texto": "ALOJAMENTO CONJUNTO.",
+"icone": "ico_pasta.png",
+"grupo": "MANUTENÇÃO DE EQUIPAMENTOS"
+},
+{
+"id": "8",
+"texto": "500AC - QUARTO 500 - ALOJAMENTO CONJUNTO",
+"icone": "ico_setor.png",
+"grupo": "ALOJAMENTO CONJUNTO."
+},
+{
+"id": "141",
+"texto": "UTIN - UTI NEONATAL",
+"icone": "ico_setordesativado.png",
+"grupo": "MANUTENÇÃO DE EQUIPAMENTOS"
+},
+{
+"id": "9",
+"texto": "SETOR SEM SIGLA",
+"icone": "ico_setor.png",
+"grupo": "MANUTENÇÃO DE EQUIPAMENTOS"
+}
+]

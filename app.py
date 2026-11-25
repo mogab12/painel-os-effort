@@ -10,6 +10,7 @@ import pandas as pd
 import streamlit as st
 
 from painel import config
+from painel.aba_historico import aba_historico
 from painel.banco import Banco
 from painel.estilo import css, faixa, legenda_grafico, paleta
 from painel.regras import Regras, classificar, resumo
@@ -83,7 +84,7 @@ def disparar_coleta():
 
 ultima = banco.ultima_coleta("ok")
 recente = banco.ultima_coleta(None)
-andamento = banco.coleta_em_andamento()
+andamento = banco.effort_ocupado()
 
 topo, botao = st.columns([5, 1])
 with topo:
@@ -94,7 +95,8 @@ with topo:
 with botao:
     st.write("")
     if andamento:
-        st.button("Coletando…", disabled=True, use_container_width=True)
+        rotulo = "Registro mensal…" if isinstance(andamento, dict) and andamento.get("tipo") == "snapshots" else "Coletando…"
+        st.button(rotulo, disabled=True, use_container_width=True)
     elif st.button("Atualizar agora", type="primary", use_container_width=True,
                    help="Busca os dados no Effort. Leva alguns minutos."):
         disparar_coleta()
@@ -104,7 +106,7 @@ with botao:
 if andamento:
     @st.fragment(run_every=15)
     def _vigiar():
-        if not banco.coleta_em_andamento():
+        if not banco.effort_ocupado():
             st.rerun(scope="app")
     _vigiar()
 
@@ -187,7 +189,7 @@ def filtrar(dados: pd.DataFrame, escolha: str) -> pd.DataFrame:
 
 
 por_resp = df.groupby("responsavel").size().sort_values(ascending=False)
-abas = st.tabs(["Visão geral"] + [f"{curto[n]} ({q})" for n, q in por_resp.items()])
+abas = st.tabs(["Visão geral"] + [f"{curto[n]} ({q})" for n, q in por_resp.items()] + ["Histórico"])
 
 with abas[0]:
     contagem = {q: int((df["depende_de"] == q).sum()) for q in QUEM}
@@ -246,7 +248,10 @@ with abas[0]:
         sel = sel[sel.astype(str).apply(lambda l: busca.lower() in " ".join(l).lower(), axis=1)]
     tabela(sel, "geral")
 
-for aba, (nome, qtd) in zip(abas[1:], por_resp.items()):
+with abas[-1]:
+    aba_historico(banco, config.RAIZ / "alertas.yaml")
+
+for aba, (nome, qtd) in zip(abas[1:-1], por_resp.items()):
     with aba:
         d = df[df["responsavel"] == nome]
         st.caption(nome)

@@ -1,0 +1,26 @@
+[
+{
+"id": "of_2",
+"texto": "MANUTENÇÃO DE EQUIPAMENTOS",
+"icone": "ico_oficina.png",
+"grupo": ""
+},
+{
+"id": "106",
+"texto": "BALANÇAS - CALIBRAÇÃO\nPeriodicidade: 1 Ano\nProcedimento: 45 - CALIBRACAO",
+"icone": "gico_planoexterno.png",
+"grupo": "MANUTENÇÃO DE EQUIPAMENTOS"
+},
+{
+"id": "77",
+"texto": "FREEZER PREVENTIVA",
+"icone": "gico_planosemperiodicidade.png",
+"grupo": "MANUTENÇÃO DE EQUIPAMENTOS"
+},
+{
+"id": "58",
+"texto": "PLANO ANTIGO",
+"icone": "gico_planoinativo.png",
+"grupo": "MANUTENÇÃO DE EQUIPAMENTOS"
+}
+]

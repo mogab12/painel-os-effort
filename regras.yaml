@@ -1,7 +1,7 @@
 # ordem: 1 = mais fácil, 8 = só acompanhar
 
 limiares:
-  escalar_apos_dias: 90
+  escalar_expirada_dias: 30   # depende de outros e expirada há mais que isso: "cobrar retorno e escalar"
   analise_atrasada_dias: 30
   antiga_dias: 180
 
@@ -31,6 +31,7 @@ sem_pendencia:
     acao: "Registrar o motivo da pendência"
 
 # vale a primeira que bater
+# se_expirada: muda ordem e ação quando o prazo da pendência expirou há mais de "dias" (0 = assim que expira)
 pendencias:
   - contem: "FECHAR OS"
     depende_de: "MEH"
@@ -41,18 +42,23 @@ pendencias:
     depende_de: "Fornecedor / terceiros"
     ordem: 7
     acao: "Aguardar certificado"
-    se_mais_de_dias: {dias: 90, ordem: 3, acao: "Cobrar certificado do fornecedor e fechar"}
+    se_expirada: {dias: 0, ordem: 3, acao: "Cobrar certificado do fornecedor e fechar"}
 
   - contem: "SOLICITACAO DE TRANSPORTE"
-    depende_de: "MEH"
-    ordem: 4
-    acao: "Providenciar transporte"
+    depende_de: "Fornecedor / terceiros"
+    ordem: 8
+    acao: "Aguardar transporte"
 
   - contem: "AGUARDANDO ANALISE DO EQUIPAMENTO"
     depende_de: "MEH"
     ordem: 6
     acao: "Analisar o equipamento"
-    se_mais_de_dias: {dias: 30, ordem: 6, acao: "Analisar o equipamento (parado há mais de 30 dias)"}
+    se_expirada: {dias: 0, ordem: 6, acao: "Analisar o equipamento (prazo expirado)"}
+  - contem: "PROBLEMA MULTIFATORIAL"
+    depende_de: "MEH"
+    ordem: 7
+    acao: "Conversar com a equipe"
+    se_expirada: {dias: 0, ordem: 7, acao: "Marcar reunião (prazo expirado)"}
 
   # terceiros
   - {contem: "AGUARDANDO EXECUCAO DO SERVICO TERCEIROS", depende_de: "Fornecedor / terceiros", ordem: 8, acao: "Acompanhar"}
@@ -63,7 +69,7 @@ pendencias:
     depende_de: "Fornecedor / terceiros"
     ordem: 8
     acao: "Acompanhar envio da documentação pelo fornecedor"
-    se_mais_de_dias: {dias: 30, ordem: 3, acao: "Cobrar documentação do fornecedor"}
+    se_expirada: {dias: 0, ordem: 3, acao: "Cobrar documentação do fornecedor"}
 
   # compras / financeiro
   - {contem: "AGUARDANDO APROVACAO DE ORCAMENTO", depende_de: "Suprimentos / financeiro", ordem: 8, acao: "Acompanhar"}
@@ -80,7 +86,7 @@ pendencias:
     depende_de: "Suprimentos / financeiro"
     ordem: 8
     acao: "Acompanhar entrega do almoxarifado"
-    se_mais_de_dias: {dias: 15, ordem: 3, acao: "Cobrar entrega do almoxarifado"}
+    se_expirada: {dias: 0, ordem: 3, acao: "Cobrar entrega do almoxarifado"}
 
 # aparece um aviso no painel
 pendencia_desconhecida:

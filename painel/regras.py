@@ -63,8 +63,6 @@ def texto_prazo(dias: float) -> str:
 
 
 def _classificar_linha(linha: pd.Series, regras: Regras) -> dict:
-    # sem data da pendência usa a da OS
-    dias = int(linha["dias_pendencia"])
     pend = (linha.get("ultima_pendencia") or "").strip()
     reconhecida = True
 
@@ -77,12 +75,16 @@ def _classificar_linha(linha: pd.Series, regras: Regras) -> dict:
     else:
         regra, reconhecida = regras.regra_pendencia(pend)
         depende, ordem, acao = regra["depende_de"], regra["ordem"], regra["acao"]
-        extra = regra.get("se_mais_de_dias")
-        if extra and dias > extra["dias"]:
+        # dias desde o prazo de conclusão; sem prazo ou ainda no prazo, a ação não muda
+        dpv = linha.get("dias_para_vencer")
+        expirada_ha = -int(dpv) if pd.notna(dpv) and dpv < 0 else None
+        extra = regra.get("se_expirada")
+        lim_escalar = regras.limiares["escalar_expirada_dias"]
+        if extra and expirada_ha is not None and expirada_ha > extra["dias"]:
             ordem, acao = extra["ordem"], extra["acao"]
-        elif depende != "MEH" and ordem >= 8 and dias > regras.limiares["escalar_apos_dias"]:
+        elif depende != "MEH" and ordem >= 8 and expirada_ha is not None and expirada_ha > lim_escalar:
             ordem = 7
-            acao = f"Cobrar retorno e escalar (parada há mais de {regras.limiares['escalar_apos_dias']} dias)"
+            acao = f"Cobrar retorno e escalar (expirada há mais de {lim_escalar} dias)"
 
     return {
         "depende_de": depende,
